@@ -1,36 +1,75 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Dashboard } from './components/Dashboard';
 import { Login } from './components/Login';
+import { AuthCallback } from './components/AuthCallback';
+import { Loader } from './components/Loader';
+import { useAuth } from './hooks/useAuth';
 import { UserProfile } from './types';
 
-// The user object that might be returned from a login API
-interface AuthenticatedUser {
-  name: string;
-  email: string;
-}
-
 const App: React.FC = () => {
-  const [user, setUser] = useState<AuthenticatedUser | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { user, isAuthenticated, isLoading, handleOAuthSuccess, updateUser } = useAuth();
 
-  const handleLoginSuccess = useCallback((loggedInUser: AuthenticatedUser) => {
-    setUser(loggedInUser);
-  }, []);
+  // Gérer le callback OAuth
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userParam = urlParams.get('user');
+    
+    if (token && userParam) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        handleOAuthSuccess(userData);
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error('Erreur traitement callback OAuth:', error);
+      }
+    }
+  }, [handleOAuthSuccess]);
 
-  const handleOnboardingComplete = useCallback((profile: UserProfile) => {
-    setUserProfile(profile);
-  }, []);
+  const handleOnboardingComplete = (profile: UserProfile) => {
+    updateUser({ ...user!, ...profile, isProfileComplete: true });
+  };
 
   const renderContent = () => {
-    if (!user) {
-      return <Login onLoginSuccess={handleLoginSuccess} />;
+    // Callback OAuth
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('token')) {
+      return <AuthCallback onAuthSuccess={handleOAuthSuccess} />;
     }
-    if (!userProfile) {
-      // Pass the basic user info to pre-fill parts of the onboarding form
-      return <Onboarding user={user} onOnboardingComplete={handleOnboardingComplete} />;
+
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader />
+        </div>
+      );
     }
-    return <Dashboard userProfile={userProfile} />;
+
+    if (!isAuthenticated || !user) {
+      return (
+        <Login 
+          onLoginSuccess={(loggedInUser) => {
+            // La gestion de l'état est maintenant dans useAuth
+          }} 
+        />
+      );
+    }
+    
+    if (!user.isProfileComplete) {
+      return (
+        <Onboarding 
+          user={{
+            name: user.name,
+            email: user.email
+          }} 
+          onOnboardingComplete={handleOnboardingComplete} 
+        />
+      );
+    }
+    
+    return <Dashboard userProfile={user as UserProfile} />;
   };
 
   return (

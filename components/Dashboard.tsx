@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Match, UserProfile } from '../types';
 import { MatchCard } from './MatchCard';
-import { fetchMatches, scanSocials } from '../services/apiService';
+import { fetchMatches, scanSocials } from '../services/realApiService';
 import { UserIcon, HeartIcon, MessageIcon, BellIcon, FilterIcon, SparklesIcon } from './IconComponents';
 
 interface DashboardProps {

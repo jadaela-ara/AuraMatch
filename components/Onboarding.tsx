@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { QUESTIONNAIRE_QUESTIONS, MOCK_POSTS_FACEBOOK, MOCK_POSTS_INSTAGRAM, MOCK_POSTS_LINKEDIN, MOCK_POSTS_TIKTOK } from '../constants';
-import { generateProfile } from '../services/apiService';
+import { generateProfile } from '../services/realApiService';
 import { Loader } from './Loader';
 import { SparklesIcon, CheckCircleIcon, FacebookIcon, TwitterIcon, InstagramIcon, TikTokIcon, LinkedInIcon } from './IconComponents';
 
