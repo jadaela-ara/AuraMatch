@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: auramatch-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: auramatch
+      MONGO_INITDB_ROOT_PASSWORD: auramatch_password_2024
+      MONGO_INITDB_DATABASE: auramatch
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/config/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - auramatch_network
+
+  # Backend API
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: auramatch-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://auramatch:auramatch_password_2024@mongodb:27017/auramatch
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - auramatch_network
+
+  # Frontend (si déployé avec Docker)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: auramatch-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3001/api
+      - VITE_SOCKET_URL=http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - auramatch_network
+
+  # Nginx proxy (optionnel)
+  nginx:
+    image: nginx:alpine
+    container_name: auramatch-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - auramatch_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  auramatch_network:
+    driver: bridge

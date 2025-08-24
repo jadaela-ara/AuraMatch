@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleIcon, FacebookIcon, SparklesIcon, AtIcon, LockIcon } from './IconComponents';
-import { login } from '../services/apiService';
+import { login } from '../services/realApiService';
 
 interface AuthenticatedUser {
   name: string;
