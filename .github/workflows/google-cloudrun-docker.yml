@@ -31,9 +31,6 @@ name: 'Build and Deploy to Cloud Run'
 
 on:
     workflow_dispatch:
-    push:
-        branches:
-          - '"main"'
 
 env:
   PROJECT_ID: 'auramatch-470020' # TODO: update to your Google Cloud project ID
