@@ -38,7 +38,7 @@ env:
   PROJECT_ID: 'auramatch-470020' # TODO: update to your Google Cloud project ID
   REGION: 'europe-west1' # TODO: update to your region
   SERVICE: 'auramatch' # TODO: update to your service name
-  WORKLOAD_IDENTITY_PROVIDER: 'projects/343501244023/locations/global/workloadIdentityPools/auramatchpool/providers/github-provider' # TODO: update to your workload identity provider
+  WORKLOAD_IDENTITY_PROVIDER: 'projects/343501244023/locations/global/workloadIdentityPools/auramatch-pool/providers/github-oidc' # TODO: update to your workload identity provider
 
 jobs:
   deploy:
