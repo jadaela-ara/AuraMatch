@@ -30,7 +30,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8080;
 
 // Base de données
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/auramatch')
@@ -110,3 +110,4 @@ server.listen(PORT, () => {
 });
 
 export default app;
+
