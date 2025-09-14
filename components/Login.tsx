@@ -18,6 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
 
   const handleOAuthLogin = (provider: 'google' | 'facebook') => {
+      alert('OAuth login triggered for: ' + provider); // DEBUG
     window.location.href = `/api/auth/${provider}`;
   };
   
