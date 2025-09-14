@@ -9,6 +9,9 @@ import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
+import passport from 'passport'; // <-- CETTE LIGNE EST CRUCIALE !
+import './config/passport.js'; // Assurez-vous que ce fichier importe et configure les stratégies Passport
+
 // Routes
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
@@ -110,4 +113,5 @@ server.listen(PORT, () => {
 });
 
 export default app;
+
 
