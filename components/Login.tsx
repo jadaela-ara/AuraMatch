@@ -18,7 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
 
   const handleOAuthLogin = (provider: 'google' | 'facebook') => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/${provider}`;
+    window.location.href = `/api/auth/${provider}`;
   };
   
   const handleLogin = async (loginMethod: 'email' = 'email') => {
