@@ -17,7 +17,11 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async (loginMethod: 'google' | 'facebook' | 'email' = 'email') => {
+  const handleOAuthLogin = (provider: 'google' | 'facebook') => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/${provider}`;
+  };
+  
+  const handleLogin = async (loginMethod: 'email' = 'email') => {
     setIsLoading(true);
     setError(null);
     try {
@@ -47,7 +51,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         <div className="bg-brand-dark/30 backdrop-blur-sm p-8 rounded-2xl shadow-lg">
             <div className="space-y-4 mb-6">
                 <button
-                    onClick={() => handleLogin('google')}
+                    onClick={() => handleOAuthLogin('google')}
                     disabled={isLoading}
                     className="w-full flex items-center justify-center gap-3 bg-white text-gray-800 font-semibold p-3 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-60"
                 >
@@ -55,7 +59,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     Continuer avec Google
                 </button>
                 <button
-                    onClick={() => handleLogin('facebook')}
+                    onClick={() => handleOAuthLogin('facebook')}
                     disabled={isLoading}
                     className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60"
                 >
