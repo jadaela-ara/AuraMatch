@@ -19,7 +19,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
   const handleOAuthLogin = (provider: 'google' | 'facebook') => {
       alert('OAuth login triggered for: ' + provider); // DEBUG
-    window.location.href = `/api/auth/${provider}`;
+    window.location.href = `https://auramatch-343501244023.europe-west1.run.app/api/auth/${provider}`;
   };
   
   const handleLogin = async (loginMethod: 'email' = 'email') => {
