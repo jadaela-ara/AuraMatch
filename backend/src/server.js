@@ -44,6 +44,9 @@ app.use(cors({
   credentials: true
 }));
 
+// Initialisation de Passport - AJOUTEZ CETTE LIGNE ICI !
+app.use(passport.initialize()); 
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: (process.env.RATE_LIMIT_WINDOW_MINUTES || 15) * 60 * 1000,
@@ -106,4 +109,4 @@ server.listen(PORT, () => {
   console.log(`📝 Documentation API: http://localhost:${PORT}/api/health`);
 });
 
-export default app;
+export default app;
