@@ -1,0 +1,27 @@
+# Workflow de déploiement complet AuraMatch
+name: 'Deploy Complete Application'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    uses: ./.github/workflows/deploy-backend.yml
+    secrets: inherit
+  
+  deploy-frontend:
+    needs: deploy-backend
+    uses: ./.github/workflows/deploy-frontend.yml
+    secrets: inherit
+    with:
+      backend_url: ${{ needs.deploy-backend.outputs.backend-url }}
+  
+  summary:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Deployment Summary'
+        run: |
+          echo "🎉 Complete AuraMatch deployment finished!"
+          echo "📱 Application ready at your Cloud Run URLs"
