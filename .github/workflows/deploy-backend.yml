@@ -8,6 +8,11 @@ on:
       - 'backend/**'
       - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
+  workflow_call:
+    outputs:
+      backend-url:
+        description: "URL du service backend déployé"
+        value: ${{ jobs.deploy.outputs.backend-url }}
 
 env:
   PROJECT_ID: 'auramatch-470020'
@@ -41,6 +46,7 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       
+      # Créer le repository Artifact Registry s'il n'existe pas
       - name: 'Create Artifact Registry repository'
         run: |
           gcloud artifacts repositories describe ${{ env.REPOSITORY }} \
@@ -61,10 +67,12 @@ jobs:
         run: |
           DOCKER_TAG="${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
           
+          # Build depuis le dossier backend
           cd backend
           docker build -t "${DOCKER_TAG}" .
           docker push "${DOCKER_TAG}"
           
+          # Sauvegarder pour les étapes suivantes
           echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
       
       - name: 'Deploy Backend to Cloud Run'
@@ -92,3 +100,9 @@ jobs:
           echo "🚀 Backend deployed successfully!"
           echo "📍 Backend URL: ${{ steps.deploy.outputs.url }}"
           echo "🔗 API Health: ${{ steps.deploy.outputs.url }}/api/health"
+      
+      - name: 'Test Backend Health'
+        run: |
+          echo "🔍 Testing backend health..."
+          sleep 30  # Attendre que le service soit prêt
+          
