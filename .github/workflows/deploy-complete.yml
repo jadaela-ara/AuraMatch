@@ -1,27 +1,60 @@
-# Workflow de déploiement complet AuraMatch
+# Workflow de déploiement complet AuraMatch (Backend + Frontend)
 name: 'Deploy Complete Application'
 
 on:
+  push:
+    branches: ['main']
   workflow_dispatch:
+
+env:
+  PROJECT_ID: 'auramatch-470020'
+  REGION: 'europe-west1'
 
 jobs:
   deploy-backend:
+    name: 'Deploy Backend'
     uses: ./.github/workflows/deploy-backend.yml
     secrets: inherit
   
   deploy-frontend:
+    name: 'Deploy Frontend'
     needs: deploy-backend
     uses: ./.github/workflows/deploy-frontend.yml
     secrets: inherit
     with:
       backend_url: ${{ needs.deploy-backend.outputs.backend-url }}
   
-  summary:
+  post-deployment:
+    name: 'Post Deployment Summary'
     needs: [deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     
     steps:
       - name: 'Deployment Summary'
         run: |
-          echo "🎉 Complete AuraMatch deployment finished!"
-          echo "📱 Application ready at your Cloud Run URLs"
+          echo "🎉 Complete AuraMatch deployment finished successfully!"
+          echo ""
+          echo "📱 Application URLs:"
+          echo "   Frontend: ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo "   Backend:  ${{ needs.deploy-backend.outputs.backend-url }}"
+          echo ""
+          echo "🔧 OAuth Google Configuration:"
+          echo "   1. Go to: https://console.cloud.google.com/apis/credentials"
+          echo "   2. Callback URL: ${{ needs.deploy-backend.outputs.backend-url }}/api/auth/google/callback"
+          echo "   3. Authorized Origins: ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo ""
+          echo "⚙️ Next Steps:"
+          echo "   1. Configure OAuth Google credentials in Google Cloud Console"
+          echo "   2. Set environment variables via Cloud Run console (auramatch-backend service)"
+          echo "   3. Test the complete authentication flow at:"
+          echo "      ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo ""
+          echo "✅ Your AuraMatch application is deployed and ready!"
+          echo ""
+          echo "🔍 Health Checks:"
+          echo "   Frontend: ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo "   Backend API: ${{ needs.deploy-backend.outputs.backend-url }}/api/health"
