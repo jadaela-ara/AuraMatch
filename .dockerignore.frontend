@@ -1,0 +1,28 @@
+# Frontend .dockerignore
+node_modules
+npm-debug.log
+.nyc_output
+coverage
+.git
+.gitignore
+README.md
+.env.local*
+!.env.production
+Dockerfile*
+docker-compose*
+.dockerignore*
+logs
+*.log
+
+# Backend files (not needed in frontend)
+backend/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts (will be rebuilt)
+dist/
