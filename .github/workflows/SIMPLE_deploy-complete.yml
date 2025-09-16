@@ -1,5 +1,5 @@
 # Workflow de déploiement complet AuraMatch - Version simple
-name: 'Deploy Complete Application'
+name: 'Simple Deploy Complete Application'
 
 on:
   push:
