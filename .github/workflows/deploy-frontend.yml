@@ -11,9 +11,19 @@ on:
   workflow_dispatch:
     inputs:
       backend_url:
-        description: 'Backend URL (optional)'
+        description: 'Backend URL (optional - will fetch from backend service if not provided)'
         required: false
         type: string
+  workflow_call:
+    inputs:
+      backend_url:
+        description: 'Backend URL from backend workflow'
+        required: true
+        type: string
+    outputs:
+      frontend-url:
+        description: "URL du service frontend déployé"
+        value: ${{ jobs.deploy.outputs.frontend-url }}
 
 env:
   PROJECT_ID: 'auramatch-470020'
@@ -32,6 +42,9 @@ jobs:
       contents: 'read'
       id-token: 'write'
     
+    outputs:
+      frontend-url: ${{ steps.deploy.outputs.url }}
+    
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v4'
@@ -45,24 +58,33 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
       
+      # Récupérer l'URL du backend
       - name: 'Get Backend URL'
         id: backend
         run: |
-          if [[ -n "${{ github.event.inputs.backend_url }}" ]]; then
+          if [[ -n "${{ inputs.backend_url }}" ]]; then
+            BACKEND_URL="${{ inputs.backend_url }}"
+            echo "Using provided backend URL: $BACKEND_URL"
+          elif [[ -n "${{ github.event.inputs.backend_url }}" ]]; then
             BACKEND_URL="${{ github.event.inputs.backend_url }}"
+            echo "Using manual input backend URL: $BACKEND_URL"
           else
+            # Essayer de récupérer depuis le service Cloud Run
+            echo "Fetching backend URL from Cloud Run service..."
             BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} \
               --region=${{ env.REGION }} \
               --format="value(status.url)" 2>/dev/null || echo "")
             
             if [[ -z "$BACKEND_URL" ]]; then
-              echo "❌ Backend service not found. Deploy backend first."
+              echo "❌ Backend service not found. Deploy backend first or provide backend_url input."
               exit 1
             fi
           fi
           
+          echo "✅ Backend URL: $BACKEND_URL"
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
       
+      # Créer le repository Artifact Registry s'il n'existe pas
       - name: 'Create Artifact Registry repository'
         run: |
           gcloud artifacts repositories describe ${{ env.REPOSITORY }} \
@@ -81,21 +103,28 @@ jobs:
       
       - name: 'Prepare Frontend Build'
         run: |
+          # Créer le fichier .env pour le build
           cat > .env.production << EOF
           VITE_API_BASE_URL=${{ env.BACKEND_URL }}
           VITE_SOCKET_URL=${{ env.BACKEND_URL }}
           VITE_NODE_ENV=production
           EOF
           
+          echo "📝 Frontend environment configured:"
+          cat .env.production
+          
+          # Utiliser le .dockerignore spécifique au frontend
           cp .dockerignore.frontend .dockerignore
       
       - name: 'Build and Push Frontend Container'
         run: |
           DOCKER_TAG="${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
           
+          # Build avec le Dockerfile frontend
           docker build -f Dockerfile.frontend -t "${DOCKER_TAG}" .
           docker push "${DOCKER_TAG}"
           
+          # Sauvegarder pour les étapes suivantes
           echo "DOCKER_TAG=${DOCKER_TAG}" >> $GITHUB_ENV
       
       - name: 'Deploy Frontend to Cloud Run'
@@ -119,13 +148,37 @@ jobs:
         run: |
           FRONTEND_URL="${{ steps.deploy.outputs.url }}"
           
+          echo "🔧 Updating backend environment variables..."
           gcloud run services update ${{ env.BACKEND_SERVICE }} \
             --region=${{ env.REGION }} \
             --update-env-vars="FRONTEND_URL=${FRONTEND_URL}" \
-            --update-env-vars="GOOGLE_CALLBACK_URL=${{ env.BACKEND_URL }}/api/auth/google/callback"
+            --update-env-vars="GOOGLE_CALLBACK_URL=${{ env.BACKEND_URL }}/api/auth/google/callback" \
+            --update-env-vars="FACEBOOK_CALLBACK_URL=${{ env.BACKEND_URL }}/api/auth/facebook/callback"
+          
+          echo "✅ Backend environment variables updated"
       
       - name: 'Show Deployment Summary'
         run: |
           echo "🎉 Frontend deployed successfully!"
           echo "📍 Frontend URL: ${{ steps.deploy.outputs.url }}"
           echo "🔗 Backend URL: ${{ env.BACKEND_URL }}"
+          echo ""
+          echo "🔧 OAuth Google Configuration Required:"
+          echo "   Callback URL: ${{ env.BACKEND_URL }}/api/auth/google/callback"
+          echo "   Authorized Origins: ${{ steps.deploy.outputs.url }}"
+          echo ""
+          echo "🚀 Your application is ready!"
+      
+      - name: 'Test Frontend Health'
+        run: |
+          echo "🔍 Testing frontend availability..."
+          sleep 30  # Attendre que le service soit prêt
+          
+          for i in {1..5}; do
+            if curl -f -s "${{ steps.deploy.outputs.url }}" > /dev/null; then
+              echo "✅ Frontend health check passed"
+              break
+            fi
+            echo "⏳ Attempt $i/5 - Waiting for frontend to be ready..."
+            sleep 10
+          done
