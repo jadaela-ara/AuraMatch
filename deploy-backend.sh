@@ -66,7 +66,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --max-instances 10 \
   --timeout 300 \
   --concurrency 80 \
-  --set-env-vars NODE_ENV=production,PORT=3001
+  --set-env-vars NODE_ENV=production
 
 # Récupérer l'URL du service
 BACKEND_URL=$(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format="value(status.url)")

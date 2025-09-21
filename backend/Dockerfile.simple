@@ -1,0 +1,27 @@
+# Backend Dockerfile simple pour Cloud Run
+FROM node:20-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with verbose logging for debugging
+RUN npm install --verbose && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Start the application
+CMD ["node", "src/server.js"]

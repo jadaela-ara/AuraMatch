@@ -1,0 +1,53 @@
+# Workflow de déploiement complet AuraMatch - Version avec permissions correctes
+name: 'Deploy Complete Application'
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+env:
+  PROJECT_ID: 'auramatch-470020'
+  REGION: 'europe-west1'
+
+jobs:
+  deploy-backend:
+    uses: ./.github/workflows/deploy-backend.yml
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    secrets: inherit
+  
+  deploy-frontend:
+    needs: deploy-backend
+    uses: ./.github/workflows/deploy-frontend.yml
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    secrets: inherit
+    with:
+      backend_url: ${{ needs.deploy-backend.outputs.backend-url }}
+  
+  post-deployment:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Deployment Summary'
+        run: |
+          echo "🎉 Complete AuraMatch deployment finished successfully!"
+          echo ""
+          echo "📱 Application URLs:"
+          echo "   Frontend: ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo "   Backend:  ${{ needs.deploy-backend.outputs.backend-url }}"
+          echo ""
+          echo "🔧 OAuth Google Configuration Required:"
+          echo "   Console: https://console.cloud.google.com/apis/credentials"
+          echo "   Callback URL: ${{ needs.deploy-backend.outputs.backend-url }}/api/auth/google/callback"  
+          echo "   Authorized Origins: ${{ needs.deploy-frontend.outputs.frontend-url }}"
+          echo ""
+          echo "🚀 Your AuraMatch application is ready!"
