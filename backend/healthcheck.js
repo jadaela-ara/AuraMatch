@@ -1,14 +1,20 @@
-import http from 'http';
+#!/usr/bin/env node
+/**
+ * Healthcheck script for Cloud Run deployment
+ * Checks if the server is responding on the expected port
+ */
 
+const http = require('http');
+
+const PORT = process.env.PORT || 3001;
 const options = {
-  host: 'localhost',
-  port: process.env.PORT || 3001,
+  host: '0.0.0.0',
+  port: PORT,
   timeout: 2000,
-  method: 'GET',
   path: '/api/health'
 };
 
-const request = http.request(options, (res) => {
+const healthCheck = http.request(options, (res) => {
   console.log(`Health check status: ${res.statusCode}`);
   if (res.statusCode === 200) {
     process.exit(0);
@@ -17,9 +23,14 @@ const request = http.request(options, (res) => {
   }
 });
 
-request.on('error', (err) => {
-  console.error('Health check failed:', err.message);
+healthCheck.on('error', (error) => {
+  console.error('Health check failed:', error.message);
   process.exit(1);
 });
 
-request.end();
+healthCheck.on('timeout', () => {
+  console.error('Health check timeout');
+  process.exit(1);
+});
+
+healthCheck.end();
