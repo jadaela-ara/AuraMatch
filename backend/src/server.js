@@ -33,7 +33,7 @@ const io = new Server(server, {
   }
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3001;
 
 // Base de données
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/auramatch')
@@ -106,10 +106,10 @@ app.use('*', (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Serveur AuraMatch démarré sur le port ${PORT}`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`📝 Documentation API: http://localhost:${PORT}/api/health`);
+  console.log(`🌐 URL: http://0.0.0.0:${PORT}`);
+  console.log(`📝 Documentation API: http://0.0.0.0:${PORT}/api/health`);
 });
 
 export default app;
