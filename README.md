@@ -2,18 +2,38 @@
 
 AuraMatch est une application de rencontre intelligente qui utilise l'IA pour créer des profils de personnalité détaillés et trouver des correspondances compatibles.
 
+## 🚀 Démarrage Rapide
+
+**Vous voulez démarrer en 5 minutes ?** → Consultez **[QUICK_SETUP.md](./QUICK_SETUP.md)**
+
+**Configuration complète avec OAuth et Cloudinary ?** → Consultez **[CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md)**
+
+### Démarrage Ultra-Rapide
+
+```bash
+# 1. Configurez backend/.env avec MongoDB et Gemini API Key
+# 2. Lancez l'application
+./start-dev.sh
+
+# Ouvrez http://localhost:5173
+```
+
+C'est tout ! 🎉
+
+---
+
 ## ✨ Fonctionnalités
 
 ### 🔐 Authentification
 - **Connexion par email/mot de passe** avec JWT
-- **OAuth Google** - Connexion rapide avec Google
-- **OAuth Facebook** - Connexion avec Facebook
+- **OAuth Google** - Connexion rapide avec Google (optionnel)
+- **OAuth Facebook** - Connexion avec Facebook (optionnel)
 - **Gestion de session sécurisée** avec refresh tokens
 
 ### 👤 Gestion de Profil
 - **Génération de profil IA** avec Gemini AI
 - **Analyse de personnalité** basée sur les réponses et réseaux sociaux
-- **Upload d'avatar** avec Cloudinary
+- **Upload d'avatar** avec Cloudinary (optionnel)
 - **Profil complet** avec centres d'intérêt, valeurs, objectifs
 
 ### 💕 Matching Intelligent
@@ -47,7 +67,7 @@ AuraMatch/
 │   │   ├── services/       # Services (Gemini AI, etc.)
 │   │   └── server.js       # Point d'entrée
 │   ├── config/            # Configuration (Passport, MongoDB)
-│   └── uploads/           # Stockage temporaire fichiers
+│   └── .env               # Variables d'environnement
 │
 ├── components/            # Composants React
 ├── services/             # Services frontend (API, Socket)
@@ -56,151 +76,96 @@ AuraMatch/
 └── constants.ts        # Constantes et données mock
 ```
 
-## 🚀 Installation et Déploiement
+## 📋 Prérequis
 
-### Prérequis
 - **Node.js** 18+ et npm
 - **MongoDB** (local ou Atlas)
-- **PM2** pour la gestion des processus
-- Comptes développeur **Google** et **Facebook** (optionnel)
-- Compte **Cloudinary** (optionnel, pour upload images)
-- Clé API **Gemini** (Google AI)
+- Clé API **Gemini** (Google AI) - **REQUIS**
+- Comptes développeur **Google** et **Facebook** (optionnel pour OAuth)
+- Compte **Cloudinary** (optionnel pour upload images)
 
-### 1. Configuration Backend
+## ⚙️ Configuration Minimale
 
+### 1. MongoDB
+
+**Option A : Local**
 ```bash
-cd backend
-cp .env.example .env
+# Installation
+sudo apt-get install mongodb  # Ubuntu/Debian
+brew install mongodb-community  # macOS
+
+# Démarrage
+sudo systemctl start mongodb
 ```
 
-Configurez les variables dans `backend/.env`:
+**Option B : Atlas (gratuit)**
+1. Créez un compte sur [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Créez un cluster gratuit
+3. Récupérez l'URI de connexion
+
+### 2. Gemini AI (Gratuit)
+
+1. Allez sur [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Créez une clé API
+3. Copiez la clé
+
+### 3. Configuration Backend
+
+Éditez `backend/.env` :
 
 ```bash
-# Base de données
+# REQUIS
 MONGODB_URI=mongodb://localhost:27017/auramatch
+JWT_SECRET=votre_secret_unique_ici
+GEMINI_API_KEY=votre_cle_gemini
 
-# JWT (générez une clé sécurisée)
-JWT_SECRET=your_super_secret_jwt_key_here
-
-# OAuth Google (https://console.developers.google.com)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# OAuth Facebook (https://developers.facebook.com)
-FACEBOOK_APP_ID=your_facebook_app_id
-FACEBOOK_APP_SECRET=your_facebook_app_secret
-
-# Gemini AI (https://makersuite.google.com)
-GEMINI_API_KEY=your_gemini_api_key
-
-# Cloudinary (https://cloudinary.com)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+# OPTIONNEL
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+FACEBOOK_APP_ID=...
+FACEBOOK_APP_SECRET=...
 ```
 
-### 2. Configuration Frontend
+## 🚀 Démarrage
+
+### Méthode 1 : Script Automatique (Recommandé)
 
 ```bash
-cp .env.local.example .env.local
+./start-dev.sh
 ```
 
-Configurez `.env.local`:
+### Méthode 2 : Manuel
 
-```bash
-VITE_API_BASE_URL=http://localhost:3001/api
-VITE_SOCKET_URL=http://localhost:3001
-```
-
-### 3. Déploiement Automatique
-
-```bash
-# Déploiement en développement
-./deploy.sh development
-
-# Déploiement en production
-./deploy.sh production
-```
-
-### 4. Déploiement Manuel
-
-#### Backend
+**Terminal 1 - Backend :**
 ```bash
 cd backend
 npm install
-pm2 start ecosystem.config.js
+npm run dev
 ```
 
-#### Frontend
+**Terminal 2 - Frontend :**
 ```bash
 npm install
-npm run build
-npm run dev  # ou servir dist/ avec nginx
+npm run dev
 ```
 
-### 5. Avec Docker
+Ouvrez `http://localhost:5173`
 
-```bash
-# Démarrer tous les services
-docker-compose up -d
+## 🧪 Test de l'Application
 
-# Voir les logs
-docker-compose logs -f
-
-# Arrêter
-docker-compose down
-```
-
-## 🔧 Configuration OAuth
-
-### Google OAuth
-1. Allez sur [Google Cloud Console](https://console.cloud.google.com)
-2. Créez un nouveau projet ou sélectionnez existant
-3. Activez l'API Google+ 
-4. Créez des identifiants OAuth 2.0
-5. Ajoutez les URLs de redirection:
-   - `http://localhost:3001/api/auth/google/callback` (dev)
-   - `https://votre-domaine.com/api/auth/google/callback` (prod)
-
-### Facebook OAuth
-1. Allez sur [Facebook Developers](https://developers.facebook.com)
-2. Créez une nouvelle app
-3. Ajoutez Facebook Login
-4. Configurez les URLs de redirection valides
-5. Ajoutez les domaines autorisés
-
-### Cloudinary Setup
-1. Créez un compte sur [Cloudinary](https://cloudinary.com)
-2. Récupérez vos identifiants dans le Dashboard
-3. Configurez les variables d'environnement
-
-## 📱 Utilisation
-
-### 1. Inscription/Connexion
-- Créez un compte avec email/mot de passe
-- Ou connectez-vous avec Google/Facebook
-
-### 2. Onboarding
-- Remplissez vos informations de base
-- (Optionnel) Connectez vos réseaux sociaux
-- Répondez au questionnaire de personnalité
-- L'IA génère votre profil automatiquement
-
-### 3. Découverte
-- Parcourez les profils recommandés
-- Consultez les scores de compatibilité
-- Likez ou passez les profils
-- Recevez des notifications de matches
-
-### 4. Matches
-- Consultez vos matches mutuels
-- Lancez des conversations
-- Découvrez de nouveaux profils via le scan social
+1. **Santé du backend** : `curl http://localhost:3001/api/health`
+2. **Créez un compte** sur http://localhost:5173
+3. **Complétez l'onboarding** :
+   - Informations personnelles
+   - Connexion réseaux sociaux (simulé)
+   - Questionnaire de personnalité
+4. **L'IA génère votre profil** automatiquement
+5. **Découvrez vos matches** avec scores de compatibilité !
 
 ## 🛠️ Commandes Utiles
 
 ```bash
-# Gestion des services
+# Gestion des services (avec PM2)
 pm2 status                    # Statut des services
 pm2 logs auramatch-backend   # Logs du backend
 pm2 restart auramatch-backend # Redémarrer le backend
@@ -208,7 +173,7 @@ pm2 stop auramatch-backend   # Arrêter le backend
 
 # Base de données
 mongosh auramatch            # Accéder à la DB
-docker-compose up -d mongodb # Démarrer MongoDB
+docker-compose up -d mongodb # Démarrer MongoDB avec Docker
 
 # Développement
 npm run dev                  # Serveur de dev frontend
@@ -216,56 +181,42 @@ npm run build               # Build de production
 npm run preview             # Preview du build
 ```
 
-## 🧪 Tests
+## 🔧 Dépannage
 
+### MongoDB ne se connecte pas
 ```bash
-# Backend
-cd backend
-npm test
+# Vérifier si MongoDB est actif
+sudo systemctl status mongodb
 
-# Frontend  
-npm run test
+# Démarrer MongoDB
+sudo systemctl start mongodb
 ```
 
-## 📈 Monitoring
+### Gemini API ne fonctionne pas
+1. Vérifiez que `GEMINI_API_KEY` est dans `backend/.env`
+2. Testez la clé sur [Google AI Studio](https://makersuite.google.com)
+3. Redémarrez le backend
 
-- **Health check**: `GET /api/health`
-- **Logs PM2**: `pm2 logs --nostream`
-- **MongoDB**: Utilisez MongoDB Compass ou CLI
+### Port déjà utilisé
+```bash
+lsof -i :3001  # Trouver le processus
+kill -9 <PID>  # Le terminer
+```
 
 ## 🚢 Déploiement en Production
 
-### Variables d'Environnement
-```bash
-NODE_ENV=production
-JWT_SECRET=your_production_jwt_secret
-MONGODB_URI=your_production_mongodb_uri
-FRONTEND_URL=https://your-domain.com
-```
+Consultez le guide de déploiement pour :
+- Configuration SSL/HTTPS
+- Variables d'environnement de production
+- Utilisation de MongoDB Atlas
+- Configuration OAuth pour production
+- Optimisation des performances
 
-### SSL/HTTPS
-Configurez un proxy inverse (nginx) avec SSL:
+## 📖 Documentation
 
-```nginx
-server {
-    listen 443 ssl;
-    server_name your-domain.com;
-    
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/private.key;
-    
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    
-    location / {
-        root /path/to/dist;
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
+- **[QUICK_SETUP.md](./QUICK_SETUP.md)** - Démarrage en 5 minutes
+- **[CONFIGURATION_GUIDE.md](./CONFIGURATION_GUIDE.md)** - Configuration complète
+- **[CLOUD_RUN_DEPLOYMENT.md](./CLOUD_RUN_DEPLOYMENT.md)** - Déploiement Google Cloud
 
 ## 🤝 Contribution
 
@@ -287,4 +238,6 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 ---
 
-Fait avec ❤️ par l'équipe AuraMatch
+Fait avec ❤️ par l'équipe AuraMatch
+
+**Prêt à trouver votre âme sœur avec l'IA ? Lancez `./start-dev.sh` maintenant !** 🚀
